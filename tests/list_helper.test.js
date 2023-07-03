@@ -101,3 +101,39 @@ describe("favorite blog", () => {
     expect(listHelper.favoriteBlog(blogs)).toEqual(expectedResult);
   });
 });
+
+describe("most blogs", () => {
+  test("one blog returns the author of that blog", () => {
+    const expectedResult = {
+      author: "Robert C. Martin",
+      blogs: 1,
+    };
+    expect(listHelper.mostBlogs(listWithOneBlog)).toEqual(expectedResult);
+  });
+  test("returns the correct author from multiple blogs", () => {
+    const expectedResult = {
+      author: "Robert C. Martin",
+      blogs: 3,
+    };
+    expect(listHelper.mostBlogs(blogs)).toEqual(expectedResult);
+  });
+});
+
+describe("most likes", () => {
+  test("returns the number of likes when one blog is submitted", () => {
+    const expectedResult = {
+      author: "Robert C. Martin",
+      likes: 5,
+    };
+
+    expect(listHelper.mostLikes(listWithOneBlog)).toEqual(expectedResult);
+  });
+
+  test("returns the correct likes and author for multiple blogs", () => {
+    const expectedResult = {
+      author: "Edsger W. Dijkstra",
+      likes: 17,
+    };
+    expect(listHelper.mostLikes(blogs)).toEqual(expectedResult);
+  });
+});
