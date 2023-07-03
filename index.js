@@ -1,28 +1,14 @@
 const config = require("./utils/config");
 const logger = require("./utils/logger");
+
 const express = require("express");
 const app = express();
 const cors = require("cors");
+
 const mongoose = require("mongoose");
+const Blog = require("./models/blog");
 
 require("dotenv").config();
-
-const blogSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number,
-});
-
-blogSchema.set("toJSON", {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-  },
-});
-
-const Blog = mongoose.model("Blog", blogSchema);
 
 const mongoUrl = config.MONGODB_URI;
 mongoose
