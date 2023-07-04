@@ -75,6 +75,25 @@ test("adding a blog with no likes defaults to 0", async () => {
   expect(lastBlog.likes).toEqual(0);
 });
 
+test.only("adding a blog with no title or url return status 400 bad request", async () => {
+  const noTitle = {
+    author: "Test",
+    url: "testing.com",
+  };
+
+  await api.post("/api/blogs").send(noTitle).expect(400);
+
+  const noUrl = {
+    title: "Test",
+    author: "Test",
+  };
+
+  await api.post("/api/blogs").send(noTitle).expect(400);
+
+  const blogsAtEnd = await helper.blogsInDb();
+  expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
