@@ -28,6 +28,13 @@ test("all notes are returned", async () => {
   expect(response.body).toHaveLength(helper.initialBlogs.length);
 });
 
+test("blogs contain an `id` field", async () => {
+  const blogs = await helper.blogsInDb();
+  const firstBlog = blogs[0];
+
+  expect(firstBlog.id).toBeDefined();
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
