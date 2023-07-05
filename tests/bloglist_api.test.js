@@ -103,6 +103,47 @@ describe("Addition of new blogs", () => {
   });
 });
 
+describe("Deletion of a blog", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    const blogsAtEnd = await helper.blogsInDb();
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1);
+
+    const contents = blogsAtEnd.map((r) => r.content);
+
+    expect(blogsAtEnd).not.toContainEqual(
+      expect.objectContaining(blogToDelete)
+    );
+  });
+
+  // test for errors
+});
+
+describe("Update blog", () => {
+  test("changing likes succeeds with valid parameters", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+
+    await api
+      .patch(`/api/blogs/${blogToUpdate.id}`)
+      .send({ likes: 1109 })
+      .expect(200);
+
+    const blogsAtEnd = await helper.blogsInDb();
+    const updatedBlog = blogsAtEnd[0];
+
+    expect(updatedBlog.likes).toEqual(1109);
+  });
+
+  // test("changing entire blog succeeds", async () => {
+
+  // })
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
