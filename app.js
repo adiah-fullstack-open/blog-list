@@ -1,6 +1,9 @@
 const config = require("./utils/config");
 const express = require("express");
 require("express-async-errors");
+
+var morgan = require("morgan");
+
 const app = express();
 
 const cors = require("cors");
@@ -25,6 +28,7 @@ mongoose
 app.use(cors());
 app.use(express.static("build"));
 app.use(express.json());
+app.use(morgan("dev"));
 
 app.use("/api/blogs", blogsRouter);
 app.use(middleware.unknownEndpoint);
