@@ -26,11 +26,12 @@ usersRouter.post("/", async (request, response) => {
 });
 
 usersRouter.get("/", async (requests, response) => {
-  // const users = await User.find({}).populate("notes", {
-  //   content: 1,
-  //   important: 1,
-  // });
-  const users = await User.find({});
+  const users = await User.find({}).populate("blogs", {
+    url: 1,
+    title: 1,
+    author: 1,
+  });
+
   response.json(users);
 });
 
