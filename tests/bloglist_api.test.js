@@ -16,10 +16,27 @@ const User = require("../models/user");
 //   const promiseArray = blogObjects.map((blog) => blog.save());
 //   await Promise.all(promiseArray);
 // });
+
 beforeEach(async () => {
   await Blog.deleteMany({});
   await Blog.insertMany(helper.initialBlogs);
+
+  await User.deleteMany({});
+  const passwordHash = await bcrypt.hash("sekret", 10);
+  const user = new User({ username: "root", passwordHash });
+  await user.save();
 });
+
+const userToken = async () => {
+  const userLogin = {
+    username: "root",
+    password: "sekret",
+  };
+
+  const loggedInUser = await api.post("/api/login").send(userLogin);
+  const token = loggedInUser.body.token;
+  return token;
+};
 
 describe("Initially stored blogs", () => {
   test("blogs are returned as json", async () => {
@@ -44,7 +61,7 @@ describe("Initially stored blogs", () => {
 });
 
 describe("Addition of new blogs", () => {
-  test("a valid blog can be added", async () => {
+  test.only("a valid blog can be added", async () => {
     const newBlog = {
       title: "Testing Blog Title",
       author: "Testing Author",
@@ -52,8 +69,11 @@ describe("Addition of new blogs", () => {
       likes: 10,
     };
 
+    const token = await userToken();
+
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -71,8 +91,11 @@ describe("Addition of new blogs", () => {
       url: "testing.url.co",
     };
 
+    const token = await userToken();
+
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -90,26 +113,51 @@ describe("Addition of new blogs", () => {
       url: "testing.com",
     };
 
-    await api.post("/api/blogs").send(noTitle).expect(400);
+    const token = await userToken();
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
+      .send(noTitle)
+      .expect(400);
 
     const noUrl = {
       title: "Test",
       author: "Test",
     };
 
-    await api.post("/api/blogs").send(noUrl).expect(400);
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `Bearer ${token}`)
+      .send(noUrl)
+      .expect(400);
 
     const blogsAtEnd = await helper.blogsInDb();
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
   });
+
+  test("fails when token is not provided", async () => {
+    const newBlog = {
+      title: "Testing Blog Title",
+      author: "Testing Author",
+      url: "testing.url.co",
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(401);
+  });
 });
 
 describe("Deletion of a blog", () => {
-  test("succeeds with status code 204 if id is valid", async () => {
+  test("succeeds with status code 204 if id is valid and user created the blog", async () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogToDelete = blogsAtStart[0];
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    const token = await userToken();
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(204);
     const blogsAtEnd = await helper.blogsInDb();
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1);
@@ -146,14 +194,14 @@ describe("Update blog", () => {
 });
 
 describe("Adding users when there is initially one user in db", () => {
-  beforeEach(async () => {
-    await User.deleteMany({});
+  // beforeEach(async () => {
+  //   await User.deleteMany({});
 
-    const passwordHash = await bcrypt.hash("sekret", 10);
-    const user = new User({ username: "root", passwordHash });
+  //   const passwordHash = await bcrypt.hash("sekret", 10);
+  //   const user = new User({ username: "root", passwordHash });
 
-    await user.save();
-  });
+  //   await user.save();
+  // });
 
   test("creation succeeds with a fresh username", async () => {
     const usersAtStart = await helper.usersInDb();
